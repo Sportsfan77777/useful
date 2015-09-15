@@ -48,7 +48,7 @@ def find_replace(old, new, file_format):
     filenames = glob.glob(file_format)
 
     for fn in filenames:
-        for line in fileinput.input(py_file, inplace = True):
+        for line in fileinput.input(fn, inplace = True):
             print(line.replace(old, new).rstrip())
 
 
@@ -74,6 +74,8 @@ def new_option_parser():
 if __name__ == '__main__':
     parser = new_option_parser()
     options, args = parser.parse_args()
+
+    ### Future Modification: also handle arguments without optionParser ###
 
     # Check for supplied arguments
     if options.find is None:
