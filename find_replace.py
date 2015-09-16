@@ -1,5 +1,5 @@
 """
-Polish: 7
+Finds text and replaces it with other text
 
 Example Usage:
 (1) python find_replace.py
@@ -17,12 +17,20 @@ Optional Arguments:
   -f FIND               text to find
   -r REPLACE            text to replace
   --format=FILE_FORMAT  search files with this glob.glob format
+  -b                    backs up each file as 'each filename'.frtmp
 
 Author's Notes:
+(1)
 At present, it is easiest to use this script in the same directory as the target files.
 Though, this script may be used in other directories if the file format is properly specified.
+(2)
+You can do this with unix too (src: http://stackoverflow.com/questions/15402770/how-to-grep-and-replace)
+find /path/to/files -type f -exec sed -i 's/oldstring/new string/g' {} \;
+
+Polish: 7
 """
 
+import shutil
 import sys
 import glob
 import fileinput
@@ -38,7 +46,7 @@ default_new = ""
 default_format = ""
 
 
-def find_replace(old, new, file_format):
+def find_replace(old, new, file_format, backup):
     """
     Parameters: old, new, file_format
 
@@ -51,7 +59,10 @@ def find_replace(old, new, file_format):
     filenames = glob.glob(file_format)
     num_files = len(filenames)
 
-    # Add option to backup files
+    # Backup Files as a precaution
+    if backup:
+        for fn in filenames:
+           shutil.copy(fn, fn + ".frtmp")
 
     # Count occurences of 'old'
     total_count = 0
@@ -101,6 +112,9 @@ def new_option_parser():
     parser.add_option("--format", 
                       dest="file_format", default = None,
                       help="search files with this glob.glob format")
+    parser.add_option("-b", action="store_true", 
+                      dest="backup", default = False,
+                      help="backs up each file as 'each filename'.frtmp")
     return parser
 
 ######## MAIN ########
@@ -121,6 +135,7 @@ if __name__ == '__main__':
         options.file_format = default_format
 
     # Find + Replace
-    find_replace(options.find, options.replace, options.file_format)
+    find_replace(options.find, options.replace, 
+                 options.file_format, options.backup)
 
 
