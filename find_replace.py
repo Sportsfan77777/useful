@@ -1,13 +1,15 @@
 """
-Polish: 9
+Polish: 7
 
 Example Usage:
 (1) python find_replace.py
-(2) python find_replace.py -f "replaceThis" -r "withThis"
-(3) python find_replace.py -f "replaceThis" -r "withThis" --format "inTheseFiles"
+(2) python find_replace.py "replaceThis" "withThis"
+(3) python find_replace.py "replaceThis" "withThis" "inTheseFiles"
+(4) python find_replace.py -f "replaceThis" -r "withThis"
+(5) python find_replace.py -f "replaceThis" -r "withThis" --format "inTheseFiles"
 
 *** If you use method (1), all of the defaults must be changed in the script ***
-*** If you use method (2), the default file format must be changed in the script ***
+*** If you use method (2) or (4), the default file format must be changed in the script ***
     
 
 Optional Arguments:
@@ -21,6 +23,7 @@ At present, it is easiest to use this script in the same directory as the target
 Though, this script may be used in other directories if the file format is properly specified.
 """
 
+import sys
 import glob
 import fileinput
 from optparse import OptionParser
@@ -46,10 +49,40 @@ def find_replace(old, new, file_format):
     """
 
     filenames = glob.glob(file_format)
+    num_files = len(filenames)
+
+    # Add option to backup files
+
+    # Count occurences of 'old'
+    total_count = 0
+    # Print occurences to stdout
+    stdout = sys.stdout
 
     for fn in filenames:
+        count = 0
         for line in fileinput.input(fn, inplace = True):
+            # Monitor occurences
+            if old in line:
+                count += 1
+                # First count
+                if count is 1:
+                     stdout.write("Found in %s\n" % fn)
+                # Any count
+                stdout.write("*** (%d) %s: '%s' ***\n" % (count, fn, line[:-1])) # Trim '\n' from line
+
+            # Replace 'old' with 'new'
             print(line.replace(old, new).rstrip())
+        # Check if found
+        if count is 0:
+            stdout.write("<<< Not found in %s: %s >>>" % (fn, line))
+        # Update Total Count
+        total_count += count
+
+    if num_files is 0:
+        stdout.write("[Error: No file matches the specified file format]\n")
+    elif num_files > 1:
+        stdout.write("In %d files, there were %d occurences of '%s'\n" % (num_files, total_count, old))
+
 
 
 def new_option_parser():
